@@ -1,0 +1,72 @@
+# Music-JEPA + action predictor, student action encoder as target.
+debug: false
+
+data:
+  data_dir: "data/maestro"
+  split_dir: "data/maestro/splits"
+  pr_and_pedal_h5_path: "data/maestro/maestro_midi.h5"
+  datasets: ["r0-pf1"]
+  num_step: 1
+  num_frame_per_step: 400
+  overlap_ratio: 0.7
+  spec_pad_val: 0.0
+  midi_chans: 1
+
+loader:
+  batch_size: 128
+  num_workers: 16
+  pin_memory: true
+  persistent_workers: true
+  drop_last_train: true
+  mask_ratio: null  # only used when model.random_mask is true
+
+train:
+  max_epochs: 200
+  precision: '32'
+  gradient_clip_val: 1.0
+  log_every_n_steps: 50
+  val_check_interval: 1.0
+  default_root_dir: ./lit_exp/jepa/music_jepa_prior_student/
+  lr: 6e-4
+  weight_decay: 1e-4
+  sched: cosine
+  warmup_steps: 5000
+  min_lr: 1.0e-06
+  every_n_epochs: 5
+
+model:
+  name: jepa
+  sp_in_chans: 1
+  sp_img_size: [400, 229]
+  sp_patch_size: [25, 15]
+  sp_embed_dim: 256
+  sp_enc_depth: 12
+  sp_enc_num_heads: 4
+  sp_enc_mlp_ratio: 2.0
+  sp_spec_min_val: -80.0
+
+  pr_in_chans: 1
+  pr_img_size: [400, 88]
+  pr_patch_size: [25, 6]
+  pr_embed_dim: 256
+  pr_enc_depth: 8
+  pr_enc_num_heads: 4
+  pr_enc_mlp_ratio: 2.0
+
+  sp_pred_depth: 6
+  sp_pred_num_heads: 4
+  sp_pred_mlp_ratio: 2.0
+  pr_pred_depth: 6
+  pr_pred_num_heads: 4
+  pr_pred_mlp_ratio: 2.0
+
+  student_final_norm: true
+  teacher_final_norm: true
+  ema_tau_base: 0.95
+  ema_tau_final: 0.95
+  ema_schedule_steps: 50000
+
+  train_action_prior: true
+  action_target_encoder: student
+  random_mask: false
+  prior_loss_weight: 0.5

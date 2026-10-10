@@ -1,0 +1,50 @@
+# Action decoder: decodes action latents back to piano rolls and pedals.
+debug: false
+
+data:
+  data_dir: "data/maestro"
+  split_dir: "data/maestro/splits"
+  pr_and_pedal_h5_path: "data/maestro/maestro_midi.h5"
+  datasets: ["r0-pf1"]
+  num_step: 1
+  num_frame_per_step: 200
+  overlap_ratio: 0.7
+  spec_pad_val: 0.0
+  midi_chans: 1
+
+loader:
+  batch_size: 256
+  num_workers: 16
+  pin_memory: true
+  persistent_workers: true
+  drop_last_train: true
+
+train:
+  max_epochs: 100
+  precision: '32'
+  gradient_clip_val: 1.0
+  log_every_n_steps: 50
+  val_check_interval: 1.0
+  default_root_dir: ./lit_exp/bundle/action_decoder/
+  lr: 6e-4
+  weight_decay: 1e-4
+  sched: cosine
+  warmup_steps: 5000
+  min_lr: 1.0e-06
+  every_n_epochs: 5
+
+model:
+  name: piano-roll-transcription-decoder
+  pr_img_size: [200, 88]  # half of the JEPA window (one state)
+  pr_patch_size: [25, 6]
+
+  input_dim: 256
+  embed_dim: 256
+  depth: 8
+  num_heads: 4
+  mlp_ratio: 2.0
+  deconv_dim: 16
+
+pretrain:
+  jepa_cfg_path: null
+  jepa_ckpt_path: null
